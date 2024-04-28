@@ -1,51 +1,59 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import streamlit as st
-from streamlit.logger import get_logger
+from PIL import Image
+import base64
+from io import BytesIO
+import anthropic
 
-LOGGER = get_logger(__name__)
+# Function to convert image to base64
+def get_image_base64(image):
+    # Convert image to RGB if it has an alpha channel (RGBA)
+    if image.mode == 'RGBA':
+        image = image.convert('RGB')
+
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG")
+    return base64.b64encode(buffered.getvalue()).decode()
+
+# Initialize the Anthropic client
+api_key = os.getenv("ANTHROPIC_API_KEY")
+client = anthropic.Anthropic(api_key=api_key)
 
 
-def run():
-    st.set_page_config(
-        page_title="Hello",
-        page_icon="👋",
+# User interface for uploading an image
+st.write("## Upload your image for analysis")
+uploaded_image = st.file_uploader("Choose an image...", type=["png", "jpg", "jpeg"])
+
+if uploaded_image:
+    # Display the uploaded image
+    image = Image.open(uploaded_image)
+    st.image(image, caption='Uploaded Image', use_column_width=True)
+
+    # Convert the image to base64
+    image_base64 = get_image_base64(image)
+
+    # Create a message for the Anthropic API
+    message = client.messages.create(
+        model="claude-3-opus-20240229",
+        max_tokens=1000,
+        temperature=0,
+        system="tell the user their season color based on the uploaded picture",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/jpeg",
+                            "data": image_base64
+                        }
+                    }
+                ]
+            }
+        ]
     )
 
-    st.write("# Welcome to Streamlit! 👋")
+# Display the response from the API
 
-    st.sidebar.success("Select a demo above.")
-
-    st.markdown(
-        """
-        Streamlit is an open-source app framework built specifically for
-        Machine Learning and Data Science projects.
-        **👈 Select a demo from the sidebar** to see some examples
-        of what Streamlit can do!
-        ### Want to learn more?
-        - Check out [streamlit.io](https://streamlit.io)
-        - Jump into our [documentation](https://docs.streamlit.io)
-        - Ask a question in our [community
-          forums](https://discuss.streamlit.io)
-        ### See more complex demos
-        - Use a neural net to [analyze the Udacity Self-driving Car Image
-          Dataset](https://github.com/streamlit/demo-self-driving)
-        - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
-    """
-    )
-
-
-if __name__ == "__main__":
-    run()
+    st.write(message.content[0].text)  # Assuming message.content is a TextBlock
