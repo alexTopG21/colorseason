@@ -1,3 +1,7 @@
 streamlit
 Pillow
-anthyro-sdk
+anthropic
+
+
+
+
