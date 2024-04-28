@@ -17,7 +17,7 @@ def get_image_base64(image):
 
 # Initialize the Anthropic client
 anthropic.api_key = os.getenv("ANTHROPIC_API_KEY")
-client = anthropic.Anthropic(api_key=api_key)
+client = anthropic.Anthropic(api_key=anthropic.api_key)
 
 
 # User interface for uploading an image
