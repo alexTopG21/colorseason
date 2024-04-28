@@ -3,6 +3,7 @@ from PIL import Image
 import base64
 from io import BytesIO
 import anthropic
+import os 
 
 # Function to convert image to base64
 def get_image_base64(image):
@@ -15,7 +16,7 @@ def get_image_base64(image):
     return base64.b64encode(buffered.getvalue()).decode()
 
 # Initialize the Anthropic client
-api_key = os.getenv("ANTHROPIC_API_KEY")
+anthropic.api_key = os.getenv("ANTHROPIC_API_KEY")
 client = anthropic.Anthropic(api_key=api_key)
 
 
