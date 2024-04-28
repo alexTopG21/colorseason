@@ -21,7 +21,8 @@ client = anthropic.Anthropic(api_key=anthropic.api_key)
 
 
 # User interface for uploading an image
-st.write("## Upload your image for analysis")
+st.title('Seasonal Color Analysis')
+st.write("Welcome to the Seasonal Color Analysis App. Upload your image, and we'll tell you which color season you belong to.")
 uploaded_image = st.file_uploader("Choose an image...", type=["png", "jpg", "jpeg"])
 
 if uploaded_image:
